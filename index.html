@@ -9,17 +9,17 @@
   html, body{
     margin:0; padding:0;
     width:100%; height:100%;
+    height:100dvh;
     background:#000;
     overflow:hidden;
+    -webkit-text-size-adjust:100%;
     font-family: 'Segoe UI', Verdana, Arial, sans-serif;
   }
   .slide{
     position:absolute;
     inset:0;
     width:100%; height:100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    overflow:hidden;
     opacity:0;
     transform: scale(1.05);
     transition: opacity 1.6s ease-in-out, transform 10s linear;
@@ -42,7 +42,8 @@
     justify-content:center;
     padding: 0 5%;
     box-sizing:border-box;
-    margin-bottom: 8%;
+    position:relative; z-index:2;
+    margin-bottom: max(6%, calc(env(safe-area-inset-bottom, 0px) + 16px));
   }
   .slide.final .caption-wrap{ margin-bottom:0; }
   .caption{
@@ -52,7 +53,10 @@
     font-size: clamp(1.1rem, 2.6vw, 1.9rem);
     line-height:1.5;
     font-weight:600;
-    padding: 18px 28px;
+    box-sizing:border-box;
+    max-height: 50vh; max-height: 50dvh;
+    overflow-y:auto;
+    padding: clamp(10px, 2vw, 18px) clamp(14px, 3vw, 28px);
     border-radius: 18px;
     background: rgba(0,0,0,0.45);
     -webkit-backdrop-filter: blur(3px);
@@ -104,7 +108,9 @@
     position:absolute; inset:0; z-index:20;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    gap:24px; text-align:center; padding:0 6%;
+    gap:24px; text-align:center;
+    padding: env(safe-area-inset-top, 0px) 6% env(safe-area-inset-bottom, 0px);
+    box-sizing:border-box;
     background: radial-gradient(ellipse at center, #1a1440 0%, #05030f 70%, #000 100%);
     color:#fff; cursor:pointer;
     transition: opacity 0.8s ease;
@@ -113,11 +119,46 @@
   #start h1{ margin:0; font-size: clamp(1.6rem, 5vw, 3rem); }
   #start p{ margin:0; font-size: clamp(1rem, 2.4vw, 1.4rem); opacity:0.85; }
 
+  /* Foto: fondo difuminado + imagen encima (sin recortes raros en ningún tamaño) */
+  .slide:not(.final)::before{
+    content:"";
+    position:absolute; inset:-6%;
+    background: var(--img) center / cover no-repeat;
+    filter: blur(28px) brightness(0.55);
+    z-index:0;
+  }
+  .photo{
+    position:absolute; inset:0; z-index:1;
+    background-image: var(--img);
+    background-position:center;
+    background-repeat:no-repeat;
+    background-size: cover;
+  }
+  /* Celular en vertical: la foto completa, sin recortar */
   @media (orientation: portrait){
-    .slide:not(.final){
-      background-size: contain;
-      background-color: #000;
-    }
+    .photo{ background-size: contain; }
+  }
+
+  /* Pantallas pequeñas */
+  @media (max-width: 480px){
+    .caption{ border-radius:14px; line-height:1.4; }
+    .replay-btn{ padding:12px 24px; }
+  }
+  /* Celular en horizontal (poca altura) */
+  @media (max-height: 500px){
+    .caption-wrap{ margin-bottom: 4%; }
+    .caption{ font-size: clamp(0.9rem, 2.2vw, 1.2rem); padding:8px 16px; max-height:40dvh; }
+    .slide.final .caption{ font-size: clamp(1.1rem, 3vw, 1.6rem); }
+    .replay-btn{ margin-top:14px; padding:8px 20px; }
+    #start{ gap:12px; }
+  }
+  /* Pantallas grandes */
+  @media (min-width: 1400px){
+    .caption{ max-width:1100px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .slide{ transition: opacity 1.6s ease-in-out; transform:none; }
+    .slide.active{ transform:none; }
   }
 </style>
 </head>
@@ -140,7 +181,7 @@
 <script>
 (function(){
   // ============================================================
-  // EDITA AQUÍ: las 15 imágenes y sus leyendas (en orden).
+  // EDITA AQUÍ: las 17 imágenes y sus leyendas (en orden).
   // Deja la leyenda vacía ("") si una foto no lleva texto.
   // ============================================================
   const IMG_DIR = 'imagenes/'; // carpeta donde están las fotos
@@ -170,9 +211,12 @@
     const s = document.createElement('div');
     s.className = 'slide';
     s.id = 'slide' + i;
-    s.style.backgroundImage = "url('" + IMG_DIR + p.img + "')";
+    s.style.setProperty('--img', "url('" + IMG_DIR + p.img + "')");
+    const ph = document.createElement('div');
+    ph.className = 'photo';
+    s.appendChild(ph);
     if (p.text) {
-      s.innerHTML = '<div class="caption-wrap"><div class="caption"></div></div>';
+      s.insertAdjacentHTML('beforeend', '<div class="caption-wrap"><div class="caption"></div></div>');
       s.querySelector('.caption').textContent = p.text;
     }
     container.appendChild(s);
@@ -208,17 +252,17 @@
 
   function spawnFirework(cx, cy){
     const particles = [];
-    const count = 60;
+    const count = 90 + Math.floor(Math.random()*40);
     for(let i=0;i<count;i++){
       const angle = (Math.PI*2*i)/count + Math.random()*0.2;
-      const speed = 2 + Math.random()*4;
+      const speed = 1.5 + Math.random()*5.5;
       particles.push({
         x: cx, y: cy,
         vx: Math.cos(angle)*speed,
         vy: Math.sin(angle)*speed,
         life: 1,
         color: colors[Math.floor(Math.random()*colors.length)],
-        size: 2 + Math.random()*2
+        size: 1.8 + Math.random()*2.6
       });
     }
     return particles;
@@ -227,15 +271,17 @@
   let allParticles = [];
   let animating = false;
 
-  function triggerFireworkBurst(){
+  // Más estallidos por imagen; en el mensaje final, un gran espectáculo
+  function triggerFireworkBurst(bursts){
+    bursts = bursts || 9;
     allParticles = [];
-    for(let b=0; b<4; b++){
+    for(let b=0; b<bursts; b++){
       setTimeout(()=>{
-        const cx = canvas.width * (0.25 + Math.random()*0.5);
-        const cy = canvas.height * (0.2 + Math.random()*0.4);
+        const cx = canvas.width * (0.1 + Math.random()*0.8);
+        const cy = canvas.height * (0.12 + Math.random()*0.5);
         allParticles = allParticles.concat(spawnFirework(cx, cy));
         if(!animating){ animating = true; requestAnimationFrame(animate); }
-      }, b*220);
+      }, b*260);
     }
   }
 
@@ -270,7 +316,7 @@
   function nextSlide(){
     const prev = current;
     current = current + 1;
-    triggerFireworkBurst();
+    triggerFireworkBurst(current === total - 1 ? 22 : 9);
     slides[prev].classList.remove('active');
     slides[current].classList.add('active');
     if(current < total - 1){
@@ -296,12 +342,13 @@
 
   startScreen.addEventListener('click', function(){
     startScreen.classList.add('hide');
+    triggerFireworkBurst(12);
     playMusic();
     begin();
   });
 
   document.getElementById('replayBtn').addEventListener('click', function(){
-    triggerFireworkBurst();
+    triggerFireworkBurst(12);
     playMusic();
     begin();
   });
