@@ -62,6 +62,7 @@
       0 0 18px rgba(0,0,0,0.7),
       0 2px 4px rgba(0,0,0,0.9);
     box-shadow: 0 0 40px rgba(0,0,0,0.3);
+    white-space: pre-line;
     opacity:0;
     transform: translateY(20px);
     transition: opacity 1.4s ease 0.4s, transform 1.4s ease 0.4s;
@@ -124,11 +125,11 @@
 
 <div class="stars-bg"></div>
 
-<!-- Las mañanitas: guarda el audio como mananitas.mp3 junto a este index -->
-<audio id="music" src="mananitas.mp3" loop preload="auto"></audio>
+<!-- Las mañanitas: guarda el audio como mananitas.mp3 dentro de la carpeta audio -->
+<audio id="music" src="audio/mananitas.mp3" loop preload="auto"></audio>
 
 <div id="start">
-  <h1>¡Que los cumplas feliz ✨!</h1>
+  <h1>¡Que los cumplas feliz 😘!</h1>
   <p>Toca la pantalla para comenzar 🎶</p>
 </div>
 
@@ -139,14 +140,15 @@
 <script>
 (function(){
   // ============================================================
-  // EDITA AQUÍ: las 17 imágenes y sus leyendas (en orden).
+  // EDITA AQUÍ: las 15 imágenes y sus leyendas (en orden).
   // Deja la leyenda vacía ("") si una foto no lleva texto.
   // ============================================================
+  const IMG_DIR = 'imagenes/'; // carpeta donde están las fotos
   const PHOTOS = [
-    { img: 'gabyta01.jpg',  text: '' },
-    { img: 'gabyta02.jpg',  text: '' },
-    { img: 'gabyta03.jpg',  text: '' },
-    { img: 'gabyta04.jpg',  text: '' },
+    { img: 'gabyta01.jpg', text: '' },
+    { img: 'gabyta02.jpg', text: '' },
+    { img: 'gabyta03.jpg', text: '' },
+    { img: 'gabyta04.jpg', text: '' },
     { img: 'gabyta06.jpg', text: '' },
     { img: 'gabyta07.jpg', text: '' },
     { img: 'gabyta08.jpg', text: '' },
@@ -157,7 +159,6 @@
     { img: 'gabyta13.jpg', text: '' },
     { img: 'gabyta14.jpg', text: '' },
     { img: 'gabyta16.jpg', text: '' },
-    { img: 'gabyta12.jpg', text: '' },
     { img: 'gabyta17.jpg', text: '' }
   ];
   const FINAL_TEXT = '¡Feliz cumpleaños Beibicita 🥳!\n\n¡Te amo ❤️!';
@@ -169,7 +170,7 @@
     const s = document.createElement('div');
     s.className = 'slide';
     s.id = 'slide' + i;
-    s.style.backgroundImage = "url('" + p.img + "')";
+    s.style.backgroundImage = "url('" + IMG_DIR + p.img + "')";
     if (p.text) {
       s.innerHTML = '<div class="caption-wrap"><div class="caption"></div></div>';
       s.querySelector('.caption').textContent = p.text;
